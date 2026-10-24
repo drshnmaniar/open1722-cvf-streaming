@@ -75,3 +75,8 @@ The following structure is proposed and may change during implementation.
 ```
 
 Changes to Open1722's existing examples or library will be maintained in an Open1722 fork, following its existing directory structure and build system. This repository will contain project documentation, experiments, and any separate integration code.
+
+## C Coding Standards
+
+Project-owned C code follows [CODING_STANDARDS.md](CODING_STANDARDS.md) and the
+repository's [`.clang-format`](.clang-format) configuration.
