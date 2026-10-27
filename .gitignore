@@ -1,0 +1,7 @@
+# Compiled artifacts
+*.o
+*.a
+*.so
+*.so.*
+*.out
+/example/sender/h264-rtp-udp-sender

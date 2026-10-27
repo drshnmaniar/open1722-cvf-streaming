@@ -46,6 +46,38 @@ flowchart LR
     H -.-> M
 ```
 
+## Simple GStreamer Sender
+
+`example/sender/h264-rtp-udp-sender.c` captures video from `/dev/video0`,
+encodes it as H.264, packetizes it as RTP, and sends it over UDP. The receiver
+IP is an optional argument (default `127.0.0.1`); the UDP port is fixed at
+`5000`.
+
+Build on Linux with the GStreamer development files and the GStreamer
+`v4l2src`, `x264enc`, and RTP plugins installed:
+
+```sh
+gcc example/sender/h264-rtp-udp-sender.c \
+    -o example/sender/h264-rtp-udp-sender \
+    $(pkg-config --cflags --libs gstreamer-1.0)
+```
+
+Run the sender with the receiver's IP address. If omitted, it sends to the
+same computer. The receiver must listen on UDP port `5000`:
+
+```sh
+./example/sender/h264-rtp-udp-sender 192.168.1.20
+```
+
+On the receiver, a matching GStreamer pipeline is:
+
+```sh
+gst-launch-1.0 -v \
+    udpsrc port=5000 \
+    caps="application/x-rtp,media=video,encoding-name=H264,payload=96" \
+    ! rtph264depay ! avdec_h264 ! autovideosink
+```
+
 ## Hardware List
 
 1. Two Raspberry Pi 4 or 5 boards, with suitable power supplies and cooling. This is the proposed embedded setup; the project brief uses two Linux PCs as the reference. Validate performance at 720p30 before increasing resolution or frame rate.
