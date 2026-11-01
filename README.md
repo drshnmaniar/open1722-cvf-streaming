@@ -46,37 +46,79 @@ flowchart LR
     H -.-> M
 ```
 
-## Simple GStreamer Sender
+## Build and Run the Sender and Receiver
 
-`example/sender/h264-rtp-udp-sender.c` captures video from `/dev/video0`,
-encodes it as H.264, packetizes it as RTP, and sends it over UDP. The receiver
-IP is an optional argument (default `127.0.0.1`); the UDP port is fixed at
-`5000`.
+The Meson build provides two independent programs: `open1722-sender` captures
+`/dev/video0`, encodes H.264, and sends RTP over UDP; `open1722-receiver`
+listens for that stream and displays the decoded video. Both use UDP port `5000`
+by default. The sender accepts an optional receiver IP (default
+`127.0.0.1`) and UDP port (default `5000`); the receiver accepts an optional
+listening port (default `5000`).
 
-Build on Linux with the GStreamer development files and the GStreamer
-`v4l2src`, `x264enc`, and RTP plugins installed:
-
-```sh
-gcc example/sender/h264-rtp-udp-sender.c \
-    -o example/sender/h264-rtp-udp-sender \
-    $(pkg-config --cflags --libs gstreamer-1.0)
-```
-
-Run the sender with the receiver's IP address. If omitted, it sends to the
-same computer. The receiver must listen on UDP port `5000`:
+On Debian, Ubuntu, and Raspberry Pi OS, install the compiler, Meson, Ninja,
+GStreamer development files, and runtime plugins with the setup script:
 
 ```sh
-./example/sender/h264-rtp-udp-sender 192.168.1.20
+./scripts/install-dependencies.sh
 ```
 
-On the receiver, a matching GStreamer pipeline is:
+It uses `sudo` to install system packages. This is a one-time step per machine;
+it does not run automatically during `git clone`. You can also run the
+**Install dependencies (Debian/Ubuntu)** task in VS Code. Other Linux
+distributions need the equivalent packages from their package manager.
+Configure and build both programs:
 
 ```sh
-gst-launch-1.0 -v \
-    udpsrc port=5000 \
-    caps="application/x-rtp,media=video,encoding-name=H264,payload=96" \
-    ! rtph264depay ! avdec_h264 ! autovideosink
+meson setup build
+meson compile -C build
+meson test -C build
 ```
+
+To install the repository's pre-push check in this clone, run this once:
+
+```sh
+./scripts/setup-git-hooks.sh
+```
+
+After that, every `git push` configures the Meson build, compiles both programs,
+and runs the tests. A failed build or test prevents the push. The setup script
+preserves any existing Git hook configuration rather than replacing it.
+
+Start the receiver on the receiving computer, optionally specifying a port:
+
+```sh
+./build/open1722-receiver
+```
+
+Then start the sender on the computer with the webcam, using the receiver's IP
+address:
+
+```sh
+./build/open1722-sender 192.168.1.20
+```
+
+Pass the receiver IP and matching UDP port to the sender to stream between
+computers; both programs default to port `5000`. For example, use
+the same custom port on both programs:
+
+```sh
+./build/open1722-receiver 5001
+./build/open1722-sender 192.168.1.20 5001
+```
+
+The sender defaults to `127.0.0.1`, so both programs can run on one computer by
+leaving the defaults unchanged.
+
+In VS Code, choose **Terminal: Run Task** to install dependencies, then run
+**Configure Meson** once (or again after changing build settings). Then choose
+**Start sender** or **Start receiver** as needed. Each start task compiles only
+its target, prompts for its arguments, and launches it. Stop a running stream
+with Ctrl+C.
+
+You do not need to delete build artifacts before recompiling; Meson rebuilds
+targets when their sources change. Run **Configure Meson** again if build
+settings change. Only remove `build/` if you want to force a clean rebuild or
+recover from a corrupted build directory, then run **Configure Meson** again.
 
 ## Hardware List
 

@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+if ! command -v meson >/dev/null 2>&1; then
+    printf '%s\n' "Meson is required to push. Run ./scripts/install-dependencies.sh first." >&2
+    exit 1
+fi
+
+if [ -f build/meson-private/coredata.dat ]; then
+    meson setup --reconfigure build
+else
+    meson setup build
+fi
+
+meson compile -C build
+meson test -C build --print-errorlogs

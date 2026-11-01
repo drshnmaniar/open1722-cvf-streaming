@@ -1,10 +1,11 @@
+#include <errno.h>
 #include <gst/gst.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, char *argv[])
 {
-    const int port = 5000;
+    int port = 5000;
     const char *receiver_ip = "127.0.0.1";
     GError *error = NULL;
     GstElement *pipeline;
@@ -13,15 +14,28 @@ int main(int argc, char *argv[])
     GstMessage *message;
     int result = EXIT_SUCCESS;
 
-    /* argc includes the program name: 1 means no IP, 2 means an IP was given. */
-    if (argc > 2) {
-        g_printerr("Usage: %s [receiver-ip]\n", argv[0]);
+    if (argc > 3) {
+        g_printerr("Usage: %s [receiver-ip] [port]\n", argv[0]);
         return EXIT_FAILURE;
     }
 
     /* Use the IP from argv[1], or keep 127.0.0.1 to send to this computer. */
-    if (argc == 2) {
+    if (argc >= 2) {
         receiver_ip = argv[1];
+    }
+    if (argc == 3) {
+        char *end = NULL;
+        unsigned long parsed_port;
+
+        errno = 0;
+        parsed_port = strtoul(argv[2], &end, 10);
+        if (errno == ERANGE || end == argv[2] || *end != '\0' ||
+            parsed_port == 0 || parsed_port > 65535) {
+            g_printerr("Invalid port '%s'. Choose a port from 1 to 65535.\n",
+                       argv[2]);
+            return EXIT_FAILURE;
+        }
+        port = (int)parsed_port;
     }
 
     /* GStreamer must be initialized before its pipeline is created. */
