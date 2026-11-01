@@ -1,0 +1,51 @@
+{
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "receiverIp",
+      "type": "promptString",
+      "description": "Receiver IP address",
+      "default": "127.0.0.1"
+    },
+    {
+      "id": "receiverPort",
+      "type": "promptString",
+      "description": "UDP port to listen on",
+      "default": "5000"
+    },
+    {
+      "id": "senderPort",
+      "type": "promptString",
+      "description": "UDP port to send to",
+      "default": "5000"
+    }
+  ],
+  "tasks": [
+    {
+      "label": "Install dependencies (Debian/Ubuntu)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/install-dependencies.sh",
+      "problemMatcher": []
+    },
+    {
+      "label": "Configure Meson",
+      "type": "shell",
+      "command": "if [ -f build/meson-private/coredata.dat ]; then meson setup --reconfigure build; else meson setup build; fi",
+      "problemMatcher": []
+    },
+    {
+      "label": "Start sender",
+      "type": "process",
+      "command": "${workspaceFolder}/scripts/start-node.sh",
+      "args": ["sender", "${input:receiverIp}", "${input:senderPort}"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Start receiver",
+      "type": "process",
+      "command": "${workspaceFolder}/scripts/start-node.sh",
+      "args": ["receiver", "${input:receiverPort}"],
+      "problemMatcher": []
+    }
+  ]
+}
