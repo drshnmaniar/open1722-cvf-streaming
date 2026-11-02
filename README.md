@@ -16,7 +16,7 @@ Open1722 already supports CVF headers, but its example applications need extensi
    - H.264 CVF implementation using GStreamer's RTP packetizer and depacketizer.
    - MJPEG CVF implementation using the shared integration.
    - Correct payload mapping, fragmentation, markers, timestamps, pacing, and presentation scheduling.
-5. Validate the streams using Wireshark and independent depayloaders. Add relevant tests and receiver statistics, and verify a warning-free strict build.
+5. Validate the streams using Wireshark and independent depayloaders. Add relevant tests and listener statistics, and verify a warning-free strict build.
 6. Establish an external optical latency measurement setup. Film a source timer and the receiving display together, compare their displayed times, and document measurement uncertainty. Add synchronized software timing to investigate individual pipeline stages.
 7. Compare H.264 and MJPEG at comparable visual quality and matching resolutions/frame rates. Compare CVF with the RTP/UDP baseline and investigate selected encoder, buffering, and timing settings. Start at 720p30, then test 1080p where hardware permits.
 8. Analyse latency, jitter, loss, bandwidth, and CPU usage. Complete scripts, raw data, setup instructions, and the final report.
@@ -40,19 +40,19 @@ flowchart LR
     D --> E[Ethernet]
     E --> F[Open1722 CVF listener<br/>and reverse mapping]
     F --> G[GStreamer RTP depayloader<br/>and decoder]
-    G --> H[Receiver display]
+    G --> H[Listener display]
     T[Source timer<br/>filmed by webcam] -.-> A
-    T -.-> M[External high-speed camera<br/>records source timer and receiver display]
+    T -.-> M[External high-speed camera<br/>records source timer and listener display]
     H -.-> M
 ```
 
-## Build and Run the Sender and Receiver
+## Build and Run the Talker and Listener
 
-The Meson build provides two independent programs: `open1722-sender` captures
-`/dev/video0`, encodes H.264, and sends RTP over UDP; `open1722-receiver`
+The Meson build provides two independent programs: `open1722-talker` captures
+`/dev/video0`, encodes H.264, and sends RTP over UDP; `open1722-listener`
 listens for that stream and displays the decoded video. Both use UDP port `5000`
-by default. The sender accepts an optional receiver IP (default
-`127.0.0.1`) and UDP port (default `5000`); the receiver accepts an optional
+by default. The talker accepts an optional listener IP (default
+`127.0.0.1`) and UDP port (default `5000`); the listener accepts an optional
 listening port (default `5000`).
 
 On Debian, Ubuntu, and Raspberry Pi OS, install the compiler, Meson, Ninja,
@@ -84,34 +84,34 @@ After that, every `git push` configures the Meson build, compiles both programs,
 and runs the tests. A failed build or test prevents the push. The setup script
 preserves any existing Git hook configuration rather than replacing it.
 
-Start the receiver on the receiving computer, optionally specifying a port:
+Start the listener on the listening computer, optionally specifying a port:
 
 ```sh
-./build/open1722-receiver
+./build/open1722-listener
 ```
 
-Then start the sender on the computer with the webcam, using the receiver's IP
+Then start the talker on the computer with the webcam, using the listener's IP
 address:
 
 ```sh
-./build/open1722-sender 192.168.1.20
+./build/open1722-talker 192.168.1.20
 ```
 
-Pass the receiver IP and matching UDP port to the sender to stream between
+Pass the listener IP and matching UDP port to the talker to stream between
 computers; both programs default to port `5000`. For example, use
 the same custom port on both programs:
 
 ```sh
-./build/open1722-receiver 5001
-./build/open1722-sender 192.168.1.20 5001
+./build/open1722-listener 5001
+./build/open1722-talker 192.168.1.20 5001
 ```
 
-The sender defaults to `127.0.0.1`, so both programs can run on one computer by
+The talker defaults to `127.0.0.1`, so both programs can run on one computer by
 leaving the defaults unchanged.
 
 In VS Code, choose **Terminal: Run Task** to install dependencies, then run
 **Configure Meson** once (or again after changing build settings). Then choose
-**Start sender** or **Start receiver** as needed. Each start task compiles only
+**Start talker** or **Start listener** as needed. Each start task compiles only
 its target, prompts for its arguments, and launches it. Stop a running stream
 with Ctrl+C.
 
@@ -126,7 +126,7 @@ recover from a corrupted build directory, then run **Configure Meson** again.
 2. Two microSD cards, preferably 32 GB or larger, one per Raspberry Pi.
 3. A UVC USB webcam supporting raw video and MJPEG. Confirm the exact model's supported modes before selection. Native H.264 output is optional because encoding can be performed in software.
 4. One Ethernet cable for a direct connection.
-5. A receiver monitor and suitable micro-HDMI-to-HDMI cable, plus a source timer display. A separate device can provide the timer display.
+5. A listener monitor and suitable micro-HDMI-to-HDMI cable, plus a source timer display. A separate device can provide the timer display.
 6. A smartphone or camera capable of high-speed recording, preferably 120 or 240 fps, and a stable mount for optical latency measurements.
 7. Keyboard and mouse as needed for setup.
 
@@ -141,8 +141,8 @@ The following structure is proposed and may change during implementation.
 ├── scripts/                   # Setup, experiment, and analysis scripts
 │   └── analyze_latency.py     # Analyse recorded latency data and generate plots
 ├── src/
-│   ├── talker/                # Sender: Webcam → GStreamer → Open1722 → Ethernet
-│   └── listener/              # Receiver: Ethernet → Open1722 → GStreamer → Display
+│   ├── talker/                # Talker: Webcam → GStreamer → Open1722 → Ethernet
+│   └── listener/              # Listener: Ethernet → Open1722 → GStreamer → Display
 ├── tests/                     # Tests for project-specific integration code
 ├── CMakeLists.txt             # Build configuration, if CMake is selected
 └── README.md                  # Project overview and setup instructions
@@ -154,3 +154,6 @@ Changes to Open1722's existing examples or library will be maintained in an Open
 
 Project-owned C code follows [CODING_STANDARDS.md](CODING_STANDARDS.md) and the
 repository's [`.clang-format`](.clang-format) configuration.
+
+
+

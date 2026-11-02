@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
     int port = 5000;
-    const char *receiver_ip = "127.0.0.1";
+    const char *listener_ip = "127.0.0.1";
     GError *error = NULL;
     GstElement *pipeline;
     GstElement *sink;
@@ -15,13 +15,13 @@ int main(int argc, char *argv[])
     int result = EXIT_SUCCESS;
 
     if (argc > 3) {
-        g_printerr("Usage: %s [receiver-ip] [port]\n", argv[0]);
+        g_printerr("Usage: %s [listener-ip] [port]\n", argv[0]);
         return EXIT_FAILURE;
     }
 
     /* Use the IP from argv[1], or keep 127.0.0.1 to send to this computer. */
     if (argc >= 2) {
-        receiver_ip = argv[1];
+        listener_ip = argv[1];
     }
     if (argc == 3) {
         char *end = NULL;
@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     /*
      * The ! symbols connect each step:
      * webcam -> format conversion -> H.264 encoding -> RTP packets -> UDP.
-     * Payload type 96 must match the receiver's RTP caps.
+     * Payload type 96 must match the listener's RTP caps.
      */
     pipeline = gst_parse_launch(
         "v4l2src device=/dev/video0 ! videoconvert ! "
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
         gst_object_unref(pipeline);
         return EXIT_FAILURE;
     }
-    g_object_set(sink, "host", receiver_ip, "port", port, NULL);
+    g_object_set(sink, "host", listener_ip, "port", port, NULL);
     gst_object_unref(sink);
 
     /* PLAYING starts the webcam capture and network transmission. */
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
     }
 
     g_print("Sending H.264 video to %s:%d (press Ctrl+C to stop)\n",
-            receiver_ip, port);
+            listener_ip, port);
 
     /* The bus carries messages from the pipeline, including errors. */
     bus = gst_element_get_bus(pipeline);
@@ -111,3 +111,4 @@ int main(int argc, char *argv[])
 
     return result;
 }
+

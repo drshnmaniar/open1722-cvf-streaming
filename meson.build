@@ -8,28 +8,33 @@ add_project_arguments('-Wpedantic', language: 'c')
 
 gstreamer = dependency('gstreamer-1.0', version: '>=1.14')
 
-sender = executable(
-    'open1722-sender',
-    'example/sender/h264-rtp-udp-sender.c',
+talker = executable(
+    'open1722-talker',
+    'src/talker/main.c',
     dependencies: gstreamer,
 )
 
-receiver = executable(
-    'open1722-receiver',
-    'src/main.c',
+listener = executable(
+    'open1722-listener',
+    'src/listener/main.c',
     dependencies: gstreamer,
 )
 
 test(
-    'sender rejects invalid port',
-    sender,
+    'talker rejects invalid port',
+    talker,
     args: ['127.0.0.1', '0'],
     should_fail: true,
 )
 
 test(
-    'receiver rejects invalid port',
-    receiver,
+    'listener rejects invalid port',
+    listener,
     args: ['65536'],
     should_fail: true,
 )
+
+
+
+
+

@@ -5,7 +5,7 @@ repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 
 if [ "$#" -lt 1 ]; then
-    printf 'Usage: %s sender [receiver-ip [port]] | receiver [port]\n' "$0" >&2
+    printf 'Usage: %s talker [listener-ip [port]] | listener [port]\n' "$0" >&2
     exit 2
 fi
 
@@ -13,14 +13,14 @@ node=$1
 shift
 
 case "$node" in
-    sender)
-        target=open1722-sender
+    talker)
+        target=open1722-talker
         ;;
-    receiver)
-        target=open1722-receiver
+    listener)
+        target=open1722-listener
         ;;
     *)
-        printf 'Unknown node "%s". Choose sender or receiver.\n' "$node" >&2
+        printf 'Unknown node "%s". Choose talker or listener.\n' "$node" >&2
         exit 2
         ;;
 esac
@@ -32,3 +32,5 @@ fi
 
 meson compile -C build "$target"
 exec "build/$target" "$@"
+
+
