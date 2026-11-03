@@ -34,6 +34,13 @@
       "problemMatcher": []
     },
     {
+      "label": "Format talker",
+      "type": "process",
+      "command": "clang-format",
+      "args": ["-i", "src/talker/main.c", "src/talker/talker.c", "src/talker/talker.h"],
+      "problemMatcher": []
+    },
+    {
       "label": "Start talker",
       "type": "process",
       "command": "${workspaceFolder}/scripts/start-node.sh",

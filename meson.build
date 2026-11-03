@@ -11,6 +11,7 @@ gstreamer = dependency('gstreamer-1.0', version: '>=1.14')
 talker = executable(
     'open1722-talker',
     'src/talker/main.c',
+    'src/talker/talker.c',
     dependencies: gstreamer,
 )
 

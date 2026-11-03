@@ -55,8 +55,9 @@ by default. The talker accepts an optional listener IP (default
 `127.0.0.1`) and UDP port (default `5000`); the listener accepts an optional
 listening port (default `5000`).
 
-On Debian, Ubuntu, and Raspberry Pi OS, install the compiler, Meson, Ninja,
-GStreamer development files, and runtime plugins with the setup script:
+On Debian, Ubuntu, and Raspberry Pi OS, install the compiler, `clang-format`,
+Meson, Ninja, GStreamer development files, and runtime plugins with the setup
+script:
 
 ```sh
 ./scripts/install-dependencies.sh
@@ -65,7 +66,10 @@ GStreamer development files, and runtime plugins with the setup script:
 It uses `sudo` to install system packages. This is a one-time step per machine;
 it does not run automatically during `git clone`. You can also run the
 **Install dependencies (Debian/Ubuntu)** task in VS Code. Other Linux
-distributions need the equivalent packages from their package manager.
+distributions need the equivalent packages from their package manager. The
+talker requires GStreamer's `h264parse` element from the bad plugins package;
+if it is missing, install `gstreamer1.0-plugins-bad` and verify it with
+`gst-inspect-1.0 h264parse`.
 Configure and build both programs:
 
 ```sh
@@ -83,6 +87,20 @@ To install the repository's pre-push check in this clone, run this once:
 After that, every `git push` configures the Meson build, compiles both programs,
 and runs the tests. A failed build or test prevents the push. The setup script
 preserves any existing Git hook configuration rather than replacing it.
+
+For two different machines, find their IPv4 addresses with this command on
+each machine:
+
+```sh
+ip -br -4 addr
+```
+
+Use the listener machine's address on the Ethernet or network interface that
+can be reached from the talker. The machines need IP addresses on a mutually
+reachable network; a direct Ethernet cable without DHCP may require assigning
+static addresses. Do not use `127.0.0.1` for a remote listener, because it
+refers to the local machine. You can check basic reachability from the talker
+with `ping <listener-ip>` (although a firewall may block ping).
 
 Start the listener on the listening computer, optionally specifying a port:
 
@@ -109,11 +127,42 @@ the same custom port on both programs:
 The talker defaults to `127.0.0.1`, so both programs can run on one computer by
 leaving the defaults unchanged.
 
+### Using a Windows USB camera from WSL
+
+USB cameras connected to Windows are not automatically available inside WSL.
+To run the talker in WSL, pass the camera through with
+[usbipd-win](https://learn.microsoft.com/windows/wsl/connect-usb):
+
+1. In PowerShell running as Administrator, list USB devices and bind the
+   camera's bus ID:
+
+   ```powershell
+   usbipd list
+   usbipd bind --busid <BUSID>
+   ```
+
+2. In regular PowerShell, attach the camera to WSL:
+
+   ```powershell
+   usbipd attach --wsl --busid <BUSID>
+   ```
+
+3. In WSL, verify that a video device is available, then start the talker:
+
+   ```sh
+   ls /dev/video*
+   ```
+
+The camera is unavailable to Windows while attached to WSL. This step is only
+needed when the camera is connected to Windows and the talker runs in WSL;
+native Linux setups do not need USB passthrough.
+
 In VS Code, choose **Terminal: Run Task** to install dependencies, then run
 **Configure Meson** once (or again after changing build settings). Then choose
-**Start talker** or **Start listener** as needed. Each start task compiles only
-its target, prompts for its arguments, and launches it. Stop a running stream
-with Ctrl+C.
+**Format talker** to run `clang-format` on the talker source. Choose **Start
+talker** or **Start listener** as needed. Each start task compiles only its
+target, prompts for its arguments, and launches it. Stop a running stream with
+Ctrl+C.
 
 You do not need to delete build artifacts before recompiling; Meson rebuilds
 targets when their sources change. Run **Configure Meson** again if build
@@ -137,7 +186,6 @@ The following structure is proposed and may change during implementation.
 ```text
 .
 ├── docs/                      # Project plan, hardware list, diagrams, and report
-├── include/                   # Headers for project-specific integration code
 ├── scripts/                   # Setup, experiment, and analysis scripts
 │   └── analyze_latency.py     # Analyse recorded latency data and generate plots
 ├── src/
@@ -154,6 +202,3 @@ Changes to Open1722's existing examples or library will be maintained in an Open
 
 Project-owned C code follows [CODING_STANDARDS.md](CODING_STANDARDS.md) and the
 repository's [`.clang-format`](.clang-format) configuration.
-
-
-
