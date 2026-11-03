@@ -1,13 +1,21 @@
 #!/bin/sh
+# filepath: /home/drshn/project/open1722-cvf-streaming/scripts/setup-git-hooks.sh
 set -eu
 
 repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 
+for hook in pre-commit pre-push; do
+    if [ ! -x "$repo_root/.githooks/$hook" ]; then
+        printf 'Missing or non-executable .githooks/%s\n' "$hook" >&2
+        exit 1
+    fi
+done
+
 configured_hooks_path=$(git config --get core.hooksPath || true)
 if [ -n "$configured_hooks_path" ]; then
     if [ "$configured_hooks_path" = ".githooks" ]; then
-        printf '%s\n' "Repository pre-push hook is already enabled."
+        printf '%s\n' "Repository pre-commit and pre-push hooks are already enabled."
         exit 0
     fi
 
@@ -17,10 +25,12 @@ if [ -n "$configured_hooks_path" ]; then
 fi
 
 hooks_dir=$(git rev-parse --git-path hooks)
-if [ -e "$hooks_dir/pre-push" ]; then
-    printf 'Refusing to replace existing hook: %s/pre-push\n' "$hooks_dir" >&2
-    exit 1
-fi
+for hook in pre-commit pre-push; do
+    if [ -e "$hooks_dir/$hook" ]; then
+        printf 'Refusing to replace existing hook: %s/%s\n' "$hooks_dir" "$hook" >&2
+        exit 1
+    fi
+done
 
 git config --local core.hooksPath .githooks
-printf '%s\n' "Enabled repository pre-push hook. Pushes will build and test with Meson."
+printf '%s\n' "Enabled repository pre-commit and pre-push hooks."

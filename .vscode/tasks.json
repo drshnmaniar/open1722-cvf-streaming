@@ -2,19 +2,19 @@
   "version": "2.0.0",
   "inputs": [
     {
-      "id": "receiverIp",
+      "id": "listenerIp",
       "type": "promptString",
-      "description": "Receiver IP address",
+      "description": "Listener IP address",
       "default": "127.0.0.1"
     },
     {
-      "id": "receiverPort",
+      "id": "listenerPort",
       "type": "promptString",
       "description": "UDP port to listen on",
       "default": "5000"
     },
     {
-      "id": "senderPort",
+      "id": "talkerPort",
       "type": "promptString",
       "description": "UDP port to send to",
       "default": "5000"
@@ -34,18 +34,28 @@
       "problemMatcher": []
     },
     {
-      "label": "Start sender",
+      "label": "Format talker",
       "type": "process",
-      "command": "${workspaceFolder}/scripts/start-node.sh",
-      "args": ["sender", "${input:receiverIp}", "${input:senderPort}"],
+      "command": "clang-format",
+      "args": ["-i", "src/talker/main.c", "src/talker/talker.c", "src/talker/talker.h"],
       "problemMatcher": []
     },
     {
-      "label": "Start receiver",
+      "label": "Start talker",
       "type": "process",
       "command": "${workspaceFolder}/scripts/start-node.sh",
-      "args": ["receiver", "${input:receiverPort}"],
+      "args": ["talker", "${input:listenerIp}", "${input:talkerPort}"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Start listener",
+      "type": "process",
+      "command": "${workspaceFolder}/scripts/start-node.sh",
+      "args": ["listener", "${input:listenerPort}"],
       "problemMatcher": []
     }
   ]
 }
+
+
+

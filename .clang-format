@@ -1,10 +1,17 @@
+---
+# Clang-format style for Open1722
 BasedOnStyle: LLVM
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
 ColumnLimit: 100
-BreakBeforeBraces: Attach
+# Function opening brace on its own line; control-structure braces on same line
+BreakBeforeBraces: Linux
+# case labels aligned with enclosing switch
+IndentCaseLabels: false
+# Do not reorder #include groups
+SortIncludes: Never
+# Pointer/reference alignment
 PointerAlignment: Right
-SortIncludes: true
-AllowShortFunctionsOnASingleLine: Empty
-AllowShortIfStatementsOnASingleLine: Never
+# Allow short functions only in class bodies (not top-level)
+AllowShortFunctionsOnASingleLine: InlineOnly
