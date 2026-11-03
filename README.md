@@ -78,10 +78,14 @@ meson compile -C build
 meson test -C build
 ```
 
-To install the repository's pre-push check in this clone, run this once:
+### Git hooks
 
-```sh
-./scripts/setup-git-hooks.sh
+This repository uses local Git hooks to keep formatting and build checks in sync
+with the project workflow. The hook definitions live in `.githooks/` and are
+enabled with:
+
+ ```sh
+ ./scripts/setup-git-hooks.sh
 ```
 
 After that, every `git push` configures the Meson build, compiles both programs,
